@@ -7,6 +7,7 @@ use CRM\CivixBundle\Utils\Path;
 
 class Module implements Builder {
   function __construct($templateEngine) {
+
     $this->templateEngine = $templateEngine;
   }
 
@@ -27,6 +28,7 @@ class Module implements Builder {
       'ignore',
       $this->templateEngine
     );
+
     $module->save($ctx, $output);
 
     $moduleCivix = new Template(
