@@ -13,46 +13,36 @@ echo "<?php\n";
  *
  * This is a very simple example drawing from a single table
  */
-class <?php echo $fullName; ?>_Memberships extends <?php echo $fullName; ?>_migrate {
+class <?php echo $fullName; ?>_Membership extends <?php echo $fullName; ?>_migrate {
   protected $entity = 'membership'; // this is the default
   protected $debug = 0; // set to 1 for debug info
   protected $base_table_id = 'id'; // name of id field
-  protected $base_table_alias = 'mt';
+  protected $base_table_alias = '<?php
+$base_table = !empty($table_map['membership']) ? $table_map['membership'] : "";
+echo $base_table;
+?>';
   // protected $_db;
-  protected $base_table = 'membershiptransaction';
+  protected $base_table = '<?php
+$base_table = !empty($table_map['membership']) ? $table_map['membership'] : "";
+echo $base_table;
+?>';
   protected $_base_table_string;
   protected $joinToRecords = FALSE;
   protected $joinField = 'constitid';
 
   public function __construct($arguments = array()) {
     parent::__construct($arguments);
-    $this->addFieldMapping('contact_id', 'records_id')->sourceMigration('Contacts');
+    if (empty($this->base_table)) {
+      $this->setPlaceHolder();
+      return;
+    }
+
+    $this->addFieldMapping('contact_id', 'records_id')->sourceMigration('Contact');
   }
 
 
   public function prepareRow($row) {
     parent::prepareRow($row);
-  }
-
-
-  /**
-   * @param $table
-   * @param $alias
-   * @param string $idKey
-   *
-   * @return SelectQuery
-   */
-  function getQuery($table, $alias, $idKey ="") {
-    $query = parent::getQuery($table,$alias, $idKey);
-    if ($alias == $this->base_table_alias) {
-      $query->addJoin('left', 'member', 'member', 'mt.membershipid = member.id');
-      $query->addJoin('left', 'records', 'records', 'member.constitid = records.id');
-      $query->addField('records', 'id', 'records_id');
-      $query->condition('mt.category', array(1, 13, 14, 15, 16), 'NOT IN');
-      $query->condition('mt.type', array(6), 'NOT IN');
-      $query->isNotNull('records.id');
-    }
-    return $query;
   }
 
   function prepare(&$entity, &$row) {

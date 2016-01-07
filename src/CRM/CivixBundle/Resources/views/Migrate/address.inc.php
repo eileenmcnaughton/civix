@@ -62,13 +62,76 @@ echo $base_table;
    */
   function prepare(&$entity, &$row) {
     parent::prepare($entity, $row);
+    $this->fixStreetAddress($entity);
     $this->fixCity($entity);
     $this->fixCountry($entity);
     if (!empty($entity->street_address) && strlen($entity->street_address) > 128) {
       // Add some handling.
     }
+    // potentially call $this->syncEmployerAddress($entity); for shared address handling.
   }
 
+  /**
+   * Check if 2 addresses are equivalent.
+   *
+   * @param string $address1
+   * @param string $address1
+   *
+   * @return bool
+   */
+  function addressCompare($address1, $address2) {
+    if(str_replace(' ', '', str_replace(',','', strtolower($this->addressTidy($address1)))) == str_replace(' ', '', str_replace(',', '', strtolower($this->addressTidy($address2)))) ) {
+      return TRUE;
+    }
+  }
+
+  /**
+   * Standardise abbreviations
+   */
+  function addressTidy($addressField) {
+    $pattern = array('/(ave)$/i', '/(st)$/i', '/(rd)$/i', '/(tce)$/i', '/(dr)$/i', '/(p o box)/i', '/(st east)$/i', '/( mt )/i', '/(hwy)$/i', '/(st,)$/i');
+    $replacement = array('Avenue', 'Street', 'Road', 'Terrace', 'Drive', 'PO Box', 'Street East', 'Mount', 'Highway', 'Street');
+    return preg_replace($pattern, $replacement, $addressField);
+  }
+
+  /**
+   * @param $entity
+   */
+  protected function fixStreetAddress(&$entity) {
+    $streetAddressFields = array('street_address', 'supplemental_address_1');
+    foreach ($streetAddressFields as $streetAddressField) {
+      if (!empty($entity->$streetAddressField)) {
+        $entity->$streetAddressField = $this->addressTidy($entity->$streetAddressField);
+      }
+    }
+  }
+
+  /**
+   * Check for existing address that matches.
+   *
+   * @param stdObj $entity
+   * @param int $contact_id
+   *
+   * @throws \MigrateException
+   */
+  function checkExisting($entity, $contact_id){
+    if(empty($entity->street_address)) {
+      return;
+    }
+    if (empty($entity->id)){
+      $existing = civicrm_api('address', 'get', array(
+        'version' => 3,
+        'contact_id' => $contact_id,
+      ));
+      if($existing['count'] > 0) {
+        foreach($existing['values'] as $address) {
+          if($this->addressCompare($entity->street_address, CRM_Utils_Array::value('street_address', $address))) {
+            return $address['id'];
+          }
+        }
+      }
+    }
+  }
 
   /**
    * Fix common misspellings.
@@ -95,6 +158,8 @@ echo $base_table;
        'Hamitlon' => 'Hamilton',
        'Katitai' => 'Kaitaia',
        'Napoer' => 'Napier',
+       'Napier Hawkes Bay' => 'Napier',
+       'NEW PLYMOUTH' => 'New Plymouth',
        'invercargill' => 'Invercargill',
        'Paekakaraki' => 'Paekakariki',
        'Plamerston North' => 'Palmerston North',
@@ -125,7 +190,7 @@ echo $base_table;
       $entity->country = $this->getCountryByCity($entity->city);
       if (empty($entity->country)) {
         if (($entity->country = $this->getCountryByCity(ucfirst(strtolower($entity->city)))) != FALSE) {
-         $entity->city = ucfirst(strtolower($entity->city));
+          $entity->city = ucfirst(strtolower($entity->city));
         }
       }
     }
@@ -145,8 +210,10 @@ echo $base_table;
       'Awanui' => 'NZ',
       'Auckland' => 'NZ',
       'Balclutha' => 'NZ',
+      'Banks Peninsula' => 'NZ',
       'Barrys Bay' => 'NZ',
       'Baylys Beach' => 'NZ',
+      'Bay of Plenty' => 'NZ',
       'Bethells Beach' => 'NZ',
       'Blackball' => 'NZ',
       'Blenheim' => 'NZ',
@@ -156,7 +223,9 @@ echo $base_table;
       'Bunnythorpe' => 'NZ',
       'Cable Bay' => 'NZ',
       'Cambridge' => 'NZ',
+      'Canterbury' => 'NZ',
       'Carterton' => 'NZ',
+      'Central North Island' => 'NZ',
       'Cheviot' => 'NZ',
       'Christchurch' => 'NZ',
       'Clarks Beach' => 'NZ',
@@ -179,7 +248,7 @@ echo $base_table;
       'Eltham' => 'NZ',
       'Fairlie' => 'NZ',
       'Featherston' => 'NZ',
-      'Feidling' => 'NZ',
+      'Feilding' => 'NZ',
       'Forest Lake' => 'NZ',
       'Foxton' => 'NZ',
       'Frasertown' => 'NZ',
@@ -187,6 +256,7 @@ echo $base_table;
       'Geraldine' => 'NZ',
       'Gisborne' => 'NZ',
       'Glendowie' => 'NZ',
+      'Golden Bay' => 'NZ',
       'Gore' => 'NZ',
       'Great Barrier Island' => 'NZ',
       'Greytown' => 'NZ',
@@ -217,7 +287,9 @@ echo $base_table;
       'Kaikoura' => 'NZ',
       'Kaingaroa' => 'NZ',
       'Kaitaia' => 'NZ',
+      'Kaiteriteri' => 'NZ',
       'Kaiwaka' => 'NZ',
+      'Kapiti Coast' => 'NZ',
       'Karangahake' => 'NZ',
       'Karitane' => 'NZ',
       'Kaitangata' => 'NZ',
@@ -242,6 +314,7 @@ echo $base_table;
       'Levin' => 'NZ',
       'Lincoln' => 'NZ',
       'Little River' => 'NZ',
+      'Lower Moutere' => 'NZ',
       'Lyttleton' => 'NZ',
       'Little Kaiteriteri' => 'NZ',
       'Lower Hutt' => 'NZ',
@@ -255,6 +328,7 @@ echo $base_table;
       'Mangawhai' => 'NZ',
       'Manutuke' => 'NZ',
       'Manatuke' => 'NZ',
+      'Marlborough' => 'NZ',
       'Marton' => 'NZ',
       'Martinborough' => 'NZ',
       'Masterton' => 'NZ',
@@ -282,6 +356,7 @@ echo $base_table;
       'Nightcaps' => 'NZ',
       'Ngaruawahia' => 'NZ',
       'Norsewood' => 'NZ',
+      'North Canterbury' => 'NZ',
       'Nuhaka' => 'NZ',
       'Oamaru' => 'NZ',
       'Ohau' => 'NZ',
@@ -297,6 +372,7 @@ echo $base_table;
       'Opua' => 'NZ',
       'Orewa' => 'NZ',
       'Opunake' => 'NZ',
+      'Otago' => 'NZ',
       'Otane' => 'NZ',
       'Otaki' => 'NZ',
       'Otautau' => 'NZ',
@@ -304,6 +380,8 @@ echo $base_table;
       'Owaka' => 'NZ',
       'Oxford' => 'NZ',
       'Pahiatua' => 'NZ',
+      'Papamoa' => 'NZ',
+      'Patea' => 'NZ',
       'Pakotai' => 'NZ',
       'Parakai' => 'NZ',
       'Praparaumu' => 'NZ',
@@ -350,11 +428,13 @@ echo $base_table;
       'Rotorua' => 'NZ',
       'Roxburgh' => 'NZ',
       'Ruakituri' => 'NZ',
+      'Ruby Bay' => 'NZ',
       'Russell' => 'NZ',
       'Sanson' => 'NZ',
       'Shannon' => 'NZ',
       'Silverdale' => 'NZ',
       'Southbridge' => 'NZ',
+      'Southland' => 'NZ',
       'Spring Creek' => 'NZ',
       'Stirling' => 'NZ',
       'Stratford' => 'NZ',
@@ -402,12 +482,14 @@ echo $base_table;
       'Waiheke Island' => 'NZ',
       'Waihi Beach' => 'NZ',
       'Waihi' => 'NZ',
+      'Waikanae Beach' => 'NZ',
       'Waimate' => 'NZ',
       'Waimana' => 'NZ',
       'Waimauku' => 'NZ',
       'Waipawa' => 'NZ',
       'Waipukurau' => 'NZ',
       'Wairoa' => 'NZ',
+      'Wairarapa' => 'NZ',
       'Waitara' => 'NZ',
       'Waitati' => 'NZ',
       'Waiuku' => 'NZ',
@@ -447,5 +529,32 @@ echo $base_table;
       return $cityCountryMap[$city];
     }
   }
+
+  /**
+   * Add address to employer & make a shared address.
+   *
+   * @param stdObj $entity
+   */
+  protected function syncEmployerAddress(&$entity) {
+    try {
+      $employerID = civicrm_api3('relationship', 'getvalue', array(
+        'contact_id_a' => $entity->contact_id,
+        'return' => 'contact_id_b',
+        'is_active' => 1,
+        'relationship_type_id' => 5,
+      ));
+      $entity->master_id = $this->checkExisting($entity, $employerID);
+      if (empty($entity->master_id)) {
+        $employerAddress = civicrm_api3('address', 'create', array_merge((array) $entity, array(
+          'contact_id' => $employerID,
+          'id' => NULL,
+        )));
+        $entity->master_id = $employerAddress['id'];
+      }
+    } catch (Exception $e) {
+      // We tried :-)
+    }
+  }
+
 
 }

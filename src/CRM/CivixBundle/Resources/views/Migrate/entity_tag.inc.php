@@ -12,7 +12,7 @@ echo "<?php\n";
  *
  * This is a very simple example drawing from a single table
  */
-class <?php echo $fullName; ?>_EntityTag extends <?php echo $fullName; ?>_migrate {
+class <?php echo $fullName; ?>_Entity_tag extends <?php echo $fullName; ?>_migrate {
   protected $entity = 'entity_tag'; // this is the default
   protected $debug = 0; // set to 1 for debug info
   protected $base_table_id = 'id'; // name of id field
@@ -20,7 +20,6 @@ class <?php echo $fullName; ?>_EntityTag extends <?php echo $fullName; ?>_migrat
   // protected $_db;
   protected $base_table = '';
   protected $_base_table_string;
-  protected $joinToRecords = TRUE;
 
   public function __construct($arguments = array()) {
     parent::__construct($arguments);
@@ -29,7 +28,7 @@ class <?php echo $fullName; ?>_EntityTag extends <?php echo $fullName; ?>_migrat
       return;
     }
 
-    $this->addFieldMapping('entity_id', 'records_id')->sourceMigration('Contacts')->issueGroup('Done');
+    $this->addFieldMapping('entity_id', 'id')->sourceMigration('Contact')->issueGroup('Done');
     $this->addFieldMapping('entity_table')->defaultValue('civicrm_contact')->issueGroup('Done');
     $this->addFieldMapping('tag_id', 'codes_code')->issueGroup('Doing');
   }
@@ -37,6 +36,16 @@ class <?php echo $fullName; ?>_EntityTag extends <?php echo $fullName; ?>_migrat
 
   public function prepareRow($row) {
     parent::prepareRow($row);
+  }
+
+  public function prepare(&$entity, &$row) {
+    $this->useMap($entity, 'tag_id', 'Tags');
+  }
+
+  function mapTags() {
+    return array(
+      'Atrs' => 'Arts'
+    );
   }
 
 

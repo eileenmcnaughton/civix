@@ -83,6 +83,7 @@ class InitMigrateCommand extends AbstractCommand {
       'phone',
       'email',
       'entity_tag',
+      'tag',
     );
 
     $ext->builders['info'] = new MigrateInfo($this->getContainer()->get('templating'));

@@ -66,6 +66,13 @@ class MigrateInfo implements Builder {
       );
       $moduleCivix->save($ctx, $output);
     }
+    $moduleCivix = new Template(
+      'CRMCivixBundle:Migrate:tags.json.php',
+      $basedir->string($ctx['fullName'] . "_tags.json"),
+      TRUE,
+      $this->templateEngine
+    );
+    $moduleCivix->save($ctx, $output);
 
 
   }

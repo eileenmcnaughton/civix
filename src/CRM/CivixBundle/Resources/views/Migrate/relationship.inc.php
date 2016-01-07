@@ -14,47 +14,23 @@ echo "<?php\n";
  * This is a very simple example drawing from a single table
  */
 class <?php echo $fullName; ?>_Relationship extends <?php echo $fullName; ?>_migrate {
-  protected $entity = 'relationship'; // this is the default
-  protected $debug = 0; // set to 1 for debug info
+  protected $entity = 'relationship';
+  // set to 1 for debug info
+  protected $debug = 1;
   protected $base_table_id = 'id'; // name of id field
-  protected $base_table_alias = 'relationships';
-  // protected $_db;
-  protected $base_table = 'constit_relationships';
+  protected $base_table_alias = '';
+  protected $base_table = '';
   protected $_base_table_string;
 
   public function __construct($arguments = array()) {
     parent::__construct($arguments);
-    $this->addFieldMapping('contact_id_b', 'relationships_constit_id')->sourceMigration('Contacts')->issueGroup('Done');
-    $this->addFieldMapping('contact_id_a', 'relationships_relation_id')->sourceMigration('Contacts')->issueGroup('Done');
-  }
-
-  /**
-   * @param $table
-   * @param $alias
-   * @param string $idKey
-   *
-   * @return SelectQuery
-   */
-  protected function getQuery($table, $alias, $idKey ="") {
-    $query = parent::getQuery($table, $alias, $idKey);
-    if ($this->joinToRecords && $alias == $this->base_table_alias) {
-      $query->addJoin('left', 'records', 'records', "records.id = {$alias}.{$this->joinField}");
-      $query->addField('records', 'id', 'records_id');
-      $query->isNotNull('records', 'id');
+    if (empty($this->base_table)) {
+      $this->setPlaceHolder();
+      return;
     }
 
-    if ($alias == $this->base_table_alias) {
-      $query->addJoin(
-        'LEFT',
-        'relationship_map',
-        'mapping',
-        'mapping.relation_code = relationships.relation_code AND mapping.recip_relation_code = relationships.recip_relation_code'
-      );
-      $query->addField('mapping', 'civicrm_relationship_type_id');
-    }
-
-
-    return $query;
+    // $this->addFieldMapping('contact_id_b', 'relationships_constit_id')->sourceMigration('Contact')->issueGroup('Done');
+    // $this->addFieldMapping('contact_id_a', 'relationships_relation_id')->sourceMigration('Contact')->issueGroup('Done');
   }
 
   public function prepare(&$entity, &$row) {

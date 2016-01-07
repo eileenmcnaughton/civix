@@ -148,6 +148,7 @@ echo $base_table;
     $this->fixPrefix($entity);
     $this->fixDeath($entity);
     $this->useMap($entity, 'contact_type', 'ContactTypes');
+    $this->fixOrganizationName($entity);
   }
 
   function mapGenders() {
@@ -236,4 +237,33 @@ echo $base_table;
       }
     }
   }
+
+  /**
+   * Fix organizaton name.
+   *
+   * Individuals should not have organization names, but they should have relationships to the relevant entities.
+   * @param $entity
+   */
+  protected function fixOrganizationName(&$entity) {
+    if ($entity->contact_type == 'Organization') {
+      if (empty($entity->first_name) && empty($entity->last_name)) {
+        return;
+      }
+      $entity->contact_type = 'Individual';
+    }
+    if (!empty($entity->organization_name)) {
+      $organization = civicrm_api3('contact', 'get', array(
+        'organization_name' => $entity->organization_name,
+        'contact_type' => 'Organization',
+      ));
+      if (empty($organization['id'])) {
+        $organization = civicrm_api3('contact', 'create', array(
+          'organization_name' => $entity->organization_name,
+          'contact_type' => 'Organization',
+        ));
+      }
+      $entity->employer_id = $organization['id'];
+    }
+  }
+
 }

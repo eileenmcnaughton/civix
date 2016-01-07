@@ -18,16 +18,21 @@ inner JOIN `sacoss_re`.constit_address_phones cap ON constit_address.id = cap.co
 INNER JOIN `sacoss_re`.phones phones ON phones.phonesid = cap.phonesid
 WHERE  (phonetypeid IN  ('367', '1130')) AND (num <> '') AND (num <> 'www.') AND (constit_address.indicator = '2')
  */
-class <?php echo $fullName; ?>_Phones extends <?php echo $fullName; ?>_migrate {
+class <?php echo $fullName; ?>_Phone extends <?php echo $fullName; ?>_migrate {
   protected $entity = 'phone'; // this is the default
   protected $debug = 0; // set to 1 for debug info
   protected $_base_table_string;
-  protected $base_table = 'constit_address_phones';
-  protected $base_table_alias = 'cap';
-  protected $base_table_id = 'constitaddressphonesid'; // name of id field
+  protected $base_table = '';
+  protected $base_table_alias = '';
+  protected $base_table_id = 'id'; // name of id field
 
   public function __construct($arguments = array()) {
     parent::__construct($arguments);
+    if (empty($this->base_table)) {
+      $this->setPlaceHolder();
+      return;
+    }
+
   }
 
   function prepareRow($row) {
@@ -51,28 +56,6 @@ class <?php echo $fullName; ?>_Phones extends <?php echo $fullName; ?>_migrate {
     return TRUE;
   }
 
-  public function getMigrateQuery($conditions = array()) {
-    $query = $this->getQuery($this->base_table, $this->base_table_alias, $this->base_table_id);
-    $query->addJoin('inner', 'constit_address', 'constit_address', 'constit_address.id = cap.constitaddressid');
-    $query->addJoin('inner', 'phones', 'phones', 'phones.phonesid = cap.phonesid');
-    //yes we DO join records from constit_id
-    $query->addJoin('inner', 'records', 'records', 'constit_address.constit_id = records.id');
-    $this->addFieldsFromtable($query, 'phones', 'phones', 'phonesid');
-    $query->addField('records', 'id', 'records_id');
-    $this->addConditions($query);
-    return $query;
-  }
-
-  public function addConditions(&$query) {
-    // fax , 364, 1044, 1036
-    $query->condition('phones.phonetypeid', array(365, 367, 1051, 1130), 'NOT IN');
-    $query->condition('phones.num', '', '<>');
-    $query->condition('phones.num', 'bouncing', '<>');
-    $query->condition('phones.num', 'Disconnected', '<>');
-    $query->condition('phones.num', 'www.', '<>');
-    $query->condition('constit_address.indicator', 2);
-
-  }
   /**
    * @param $entity
    * @param $row
