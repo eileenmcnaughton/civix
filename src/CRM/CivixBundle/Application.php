@@ -22,6 +22,7 @@ use CRM\CivixBundle\Command\InfoSetCommand;
 use CRM\CivixBundle\Command\InitCommand;
 use CRM\CivixBundle\Command\PingCommand;
 use CRM\CivixBundle\Command\TestRunCommand;
+use CRM\CivixBundle\Command\AddOmnipayProcessorCommand;
 
 class Application extends \Symfony\Component\Console\Application {
 
@@ -67,6 +68,7 @@ class Application extends \Symfony\Component\Console\Application {
     $commands[] = new TestRunCommand();
     $commands[] = new InfoGetCommand();
     $commands[] = new InfoSetCommand();
+    $commands[] = new AddOmnipayProcessorCommand();
     return $commands;
   }
 
