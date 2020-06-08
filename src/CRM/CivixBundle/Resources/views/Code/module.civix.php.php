@@ -214,9 +214,7 @@ function _<?php echo $mainFile ?>_civix_upgrader() {
   if (!file_exists(__DIR__ . '/<?php echo $namespace ?>/Upgrader.php')) {
     return NULL;
   }
-  else {
-    return <?php echo $_namespace ?>_Upgrader_Base::instance();
-  }
+  return <?php echo $_namespace ?>_Upgrader_Base::instance();
 }
 
 /**
@@ -258,6 +256,7 @@ function _<?php echo $mainFile ?>_civix_find_files($dir, $pattern) {
   }
   return $result;
 }
+
 /**
  * (Delegated) Implements hook_civicrm_managed().
  *
@@ -473,7 +472,6 @@ function _<?php echo $mainFile ?>_civix_civicrm_alterSettingsFolders(&$metaDataF
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_entityTypes
  */
-
 <?php
 // Add appropriate indentation
 foreach(explode("\n", $entityTypes) as $k => $l){
